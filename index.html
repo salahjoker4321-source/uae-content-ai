@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UAE Content AI</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#0b1020;color:#f5f7ff}
+.container{max-width:900px;margin:auto;padding:28px 18px 60px}
+.hero{text-align:center;padding:35px 10px 25px}.badge{display:inline-block;padding:7px 12px;border:1px solid #33406b;border-radius:999px;color:#aebcff;font-size:13px}
+h1{font-size:42px;margin:16px 0 8px}.hero p{color:#aab2c8;font-size:17px}
+.card{background:#121a2d;border:1px solid #263352;border-radius:18px;padding:22px;margin-top:18px;box-shadow:0 12px 35px rgba(0,0,0,.2)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:block;font-size:13px;color:#aeb8d0;margin-bottom:7px}
+select,input,button{width:100%;border-radius:12px;padding:13px 14px;font-size:15px}
+select,input{background:#0c1324;color:#fff;border:1px solid #33405e}
+button{border:0;background:#6d5dfc;color:white;font-weight:700;cursor:pointer;margin-top:18px}
+button:hover{filter:brightness(1.1)}
+.result{white-space:pre-wrap;line-height:1.65;color:#e9edff}
+.hidden{display:none}.small{font-size:12px;color:#8791aa;text-align:center;margin-top:14px}
+@media(max-width:650px){.grid{grid-template-columns:1fr}h1{font-size:34px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <section class="hero">
+    <span class="badge">🇦🇪 Built for UAE creators & small businesses</span>
+    <h1>UAE Content AI</h1>
+    <p>Generate TikTok, Reels and Shorts ideas in seconds.</p>
+  </section>
+
+  <section class="card">
+    <div class="grid">
+      <div>
+        <label>Business type</label>
+        <select id="business">
+          <option>Restaurant</option><option>Barber</option><option>Gym</option>
+          <option>Car Wash</option><option>Real Estate</option><option>Online Shop</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label>Platform</label>
+        <select id="platform"><option>TikTok</option><option>Instagram Reels</option><option>YouTube Shorts</option></select>
+      </div>
+      <div>
+        <label>Language</label>
+        <select id="language"><option>English</option><option>Arabic</option></select>
+      </div>
+      <div>
+        <label>Content type</label>
+        <select id="type"><option>Video Idea</option><option>Hook</option><option>30-Second Script</option><option>Caption</option><option>Hashtags</option><option>7-Day Content Plan</option></select>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <label>Optional topic / offer</label>
+      <input id="topic" placeholder="e.g. Friday biryani offer, new haircut, gym membership">
+    </div>
+    <button onclick="generate()">✨ Generate Content</button>
+  </section>
+
+  <section class="card hidden" id="outputCard">
+    <h2>✨ Your content</h2>
+    <div class="result" id="output"></div>
+    <button onclick="copyText()">📋 Copy</button>
+  </section>
+
+  <p class="small">Prototype v1 • No account or payment required</p>
+</div>
+
+<script>
+const data={
+Restaurant:{hooks:["Stop scrolling — UAE food lovers need to see this!","POV: you just found your new favorite food spot in the UAE.","If you love good food, save this place."],ideas:["Show the best-selling dish from preparation to first bite.","Film a fast 3-shot tour of the restaurant and its signature dish.","Record a customer reaction after trying the featured meal."]},
+Barber:{hooks:["Your next haircut should look like this.","POV: you finally found a barber who gets your style.","Fresh cut in 30 seconds — watch the transformation."],ideas:["Before-and-after haircut transformation.","Show the haircut process with quick satisfying cuts.","Ask the customer to rate the final look."]},
+Gym:{hooks:["Still waiting for Monday? Start today.","POV: you walk into the gym with zero motivation and leave stronger.","Save this workout for your next gym session."],ideas:["Show a simple 3-exercise beginner workout.","Film a before/after training transformation.","Show one common exercise mistake and the correct form."]},
+"Car Wash":{hooks:["Your car deserves this treatment.","Watch this dirty UAE car become showroom clean.","POV: you just got your car detailed."],ideas:["Dirty-to-clean transformation.","Satisfying interior cleaning sequence.","Show 3 details people forget to clean in their cars."]},
+"Real Estate":{hooks:["Would you live here in the UAE?","Here is what you can get for your budget.","3 things to check before renting in the UAE."],ideas:["Quick tour of a property with price and key features.","Compare two properties for the same budget.","Show 5 details renters should inspect before moving in."]},
+"Online Shop":{hooks:["You didn't know you needed this until now.","This product is going viral for a reason.","POV: your package finally arrived."],ideas:["Unboxing and first reaction.","Show 3 ways to use the product.","Problem → product → result video."]},
+Other:{hooks:["UAE viewers, you need to see this.","POV: you just discovered something useful.","Save this idea for later."],ideas:["Show the product/service solving one clear problem.","Behind-the-scenes video.","Before-and-after transformation."]}
+};
+
+async function generate(){
+ const b=document.getElementById("business").value,p=document.getElementById("platform").value,l=document.getElementById("language").value,t=document.getElementById("type").value,topic=document.getElementById("topic").value.trim();
+ const btn=document.querySelector('button[onclick="generate()"]'); btn.disabled=true; btn.textContent="✨ Generating...";
+ document.getElementById("outputCard").classList.remove("hidden"); document.getElementById("output").textContent="Creating your content...";
+ try{
+  const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({business:b,platform:p,language:l,type:t,topic})});
+  const data=await r.json(); if(!r.ok) throw new Error(data.error||'Generation failed');
+  document.getElementById("output").textContent=data.text+"\n\nPlatform: "+p;
+ }catch(e){ document.getElementById("output").textContent="Could not generate content. Check that OPENAI_API_KEY is configured on the server.\n\nError: "+e.message; }
+ btn.disabled=false; btn.textContent="✨ Generate Content";
+ document.getElementById("outputCard").scrollIntoView({behavior:"smooth"});
+}
+function copyText(){navigator.clipboard.writeText(document.getElementById("output").textContent);alert("Copied!");}
+</script>
+</body>
+</html>
